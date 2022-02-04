@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  st3d:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: "ch35li/st3d:debug"
+    user: 1595:100
+    environment:
+      - PYTHONPATH=/home/ST3D
+      - NUMBAPRO_CUDA_DRIVER=/usr/lib/x86_64-linux-gnu/libcuda.so
+      - NUMBAPRO_NVVM=/usr/local/cuda/nvvm/lib64/libnvvm.so
+      - NUMBAPRO_LIBDEVICE=/usr/local/cuda/nvvm/libdevicel
+    tty: true 
+    volumes:
+      - /mnt/wato-drive/nuScenes:/home/nuScenes
+      - /mnt/wato-drive/perception_pcds/road:/home/road
