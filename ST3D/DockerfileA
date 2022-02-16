@@ -1,0 +1,32 @@
+# syntax=docker/dockerfile:1
+FROM scrin/dev-spconv:latest
+
+USER root:root
+
+WORKDIR /home/
+
+SHELL ["/bin/bash", "-c"]
+
+ENV DEBIAN_FRONTEND=noninteractive 
+
+ADD ST3D /home/ST3D
+
+RUN pip3 install --upgrade pip && \
+    pip3 install numba==0.50.0 scikit-image scipy pillow==8.0 && \
+    pip3 install fire tensorboardX protobuf opencv-python nuscenes-devkit && \
+    pip3 install easydict pyyaml==5.4.1
+#spconv-cu102 
+
+# WORKDIR "/home/ST3D"
+# RUN PROBLEM_FILE=/usr/local/lib/python3.8/dist-packages/torch/share/cmake/Caffe2/Caffe2Targets.cmake && \
+#     sed -i 's/-Wall;-Wextra;-Wno-unused-parameter;-Wno-missing-field-initializers;-Wno-write-strings;-Wno-unknown-pragmas;-Wno-missing-braces;-fopenmp//g' $PROBLEM_FILE && \
+#     sed -i 's/-Wall;-Wextra;-Wno-unused-parameter;-Wno-missing-field-initializers;-Wno-write-strings;-Wno-unknown-pragmas;-Wno-missing-braces//g' $PROBLEM_FILE && \
+#     cd /root && \
+#     git clone --depth 1 --recursive https://www.github.com/traveller59/spconv.git && \
+#     cd ./spconv && \
+#     SPCONV_FORCE_BUILD_CUDA=1 python setup.py install
+
+# WORKDIR "/home/ST3D"
+# RUN python3 setup.py develop 
+
+CMD ["bash"]

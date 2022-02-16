@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: "ch35li/st3d:debug"
-    user: 1595:100
+    user: ${FIXUID:?}:${FIXGID:?}
     environment:
       - PYTHONPATH=/home/ST3D
       - NUMBAPRO_CUDA_DRIVER=/usr/lib/x86_64-linux-gnu/libcuda.so
@@ -13,5 +13,6 @@ services:
       - NUMBAPRO_LIBDEVICE=/usr/local/cuda/nvvm/libdevicel
     tty: true 
     volumes:
-      - /mnt/wato-drive/nuScenes:/home/nuScenes
-      - /mnt/wato-drive/perception_pcds/road:/home/road
+      - /mnt/wato-drive/nuScenes:/home/nuScenes:z
+      - /mnt/wato-drive/perception_pcds/road:/home/road:z
+      # - /home/ch35li/alvin/PointPillars/ST3D:/home/

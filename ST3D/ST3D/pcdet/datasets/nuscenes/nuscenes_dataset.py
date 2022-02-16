@@ -2,6 +2,7 @@ import copy
 import pickle
 from pathlib import Path
 
+import os
 import numpy as np
 from tqdm import tqdm
 
@@ -12,7 +13,7 @@ from ..dataset import DatasetTemplate
 
 class NuScenesDataset(DatasetTemplate):
     def __init__(self, dataset_cfg, class_names, training=True, root_path=None, logger=None):
-        root_path = (root_path if root_path is not None else Path(dataset_cfg.DATA_PATH)) / dataset_cfg.VERSION
+        root_path = "/home/nuScenes/v1.0-trainval"
         super().__init__(
             dataset_cfg=dataset_cfg, class_names=class_names, training=training, root_path=root_path, logger=logger
         )
@@ -26,8 +27,8 @@ class NuScenesDataset(DatasetTemplate):
         nuscenes_infos = []
 
         for info_path in self.dataset_cfg.INFO_PATH[mode]:
-            info_path = self.root_path / info_path
-            if not info_path.exists():
+            info_path = "/home/nuScenes/v1.0-trainval/nuscenes_infos_10sweeps_{}.pkl".format("train" if mode=="train" else "val")
+            if not os.path.exists(info_path):
                 continue
             with open(info_path, 'rb') as f:
                 infos = pickle.load(f)
@@ -414,8 +415,8 @@ def create_nuscenes_info(version, data_path, save_path, max_sweeps=10):
     from nuscenes.nuscenes import NuScenes
     from nuscenes.utils import splits
     from . import nuscenes_utils
-    data_path = data_path / version
-    save_path = save_path / version
+    data_path = data_path 
+    save_path = save_path 
 
     assert version in ['v1.0-trainval', 'v1.0-test', 'v1.0-mini']
     if version == 'v1.0-trainval':
@@ -447,13 +448,13 @@ def create_nuscenes_info(version, data_path, save_path, max_sweeps=10):
 
     if version == 'v1.0-test':
         print('test sample: %d' % len(train_nusc_infos))
-        with open(save_path / f'nuscenes_infos_{max_sweeps}sweeps_test.pkl', 'wb') as f:
+        with open(f'/home/nuScenes/v1.0-trainval/nuscenes_infos_{max_sweeps}sweeps_test.pkl', 'wb') as f:
             pickle.dump(train_nusc_infos, f)
     else:
         print('train sample: %d, val sample: %d' % (len(train_nusc_infos), len(val_nusc_infos)))
-        with open(save_path / f'nuscenes_infos_{max_sweeps}sweeps_train.pkl', 'wb') as f:
+        with open(f'/home/nuScenes/v1.0-trainval/nuscenes_infos_{max_sweeps}sweeps_train.pkl', 'wb') as f:
             pickle.dump(train_nusc_infos, f)
-        with open(save_path / f'nuscenes_infos_{max_sweeps}sweeps_val.pkl', 'wb') as f:
+        with open(f'/home/nuScenes/v1.0-trainval/nuscenes_infos_{max_sweeps}sweeps_val.pkl', 'wb') as f:
             pickle.dump(val_nusc_infos, f)
 
 
@@ -471,18 +472,17 @@ if __name__ == '__main__':
 
     if args.func == 'create_nuscenes_infos':
         dataset_cfg = EasyDict(yaml.load(open(args.cfg_file)))
-        ROOT_DIR = (Path(__file__).resolve().parent / '../../../').resolve()
         dataset_cfg.VERSION = args.version
         create_nuscenes_info(
             version=dataset_cfg.VERSION,
-            data_path=ROOT_DIR / 'data' / 'nuscenes',
-            save_path=ROOT_DIR / 'data' / 'nuscenes',
+            data_path='/home/nuScenes/v1.0-trainval',
+            save_path='/home/nuScenes/v1.0-trainval',
             max_sweeps=dataset_cfg.MAX_SWEEPS,
         )
 
         nuscenes_dataset = NuScenesDataset(
             dataset_cfg=dataset_cfg, class_names=None,
-            root_path=ROOT_DIR / 'data' / 'nuscenes',
+            root_path='/home/nuScenes/v1.0-trainval',
             logger=common_utils.create_logger(), training=True
         )
         nuscenes_dataset.create_groundtruth_database(max_sweeps=dataset_cfg.MAX_SWEEPS)

@@ -1,5 +1,7 @@
 # syntax=docker/dockerfile:1
-FROM nvidia/cuda:9.2-cudnn7-devel-ubuntu18.04
+FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
+# FROM nvidia/cuda:10.2-cudnn7-devel-ubuntu18.04
+# FROM nvidia/cuda:9.2-cudnn7-devel-ubuntu18.04
 
 USER root:root
 
@@ -28,13 +30,16 @@ ADD spconv /home/spconv
 RUN pip3 install --upgrade pip && \
     pip3 install numba==0.50.0 scikit-image scipy pillow==8.0 && \
     pip3 install fire tensorboardX protobuf opencv-python torch==1.1 torchvision nuscenes-devkit && \
-    pip3 install easydict pyyaml 
+    pip3 install easydict pyyaml==5.4.1
 #spconv-cu102 
 
 WORKDIR "/home/spconv"
-RUN python3 setup.py bdist_wheel
+RUN python3 setup.py bdist_wheel 
+
+WORKDIR "/home/spconv/dist"
+RUN pip3 install *
 
 WORKDIR "/home/ST3D"
-RUN python3 setup.py develop
+RUN python3 setup.py develop 
 
 CMD ["bash"]

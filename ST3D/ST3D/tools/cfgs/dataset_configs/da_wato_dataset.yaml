@@ -1,5 +1,5 @@
 DATASET: 'WatoDataset'
-DATA_PATH: '../data/wato'
+DATA_PATH: '/home/road/npy'
 
 VERSION: 'v1.0-trainval'
 SET_NAN_VELOCITY_TO_ZEROS: True
@@ -8,12 +8,7 @@ FILTER_MIN_POINTS_IN_GT: 1
 DATA_SPLIT: {
     'train': train,
     'test': val
-}
-
-INFO_PATH: {
-    'train': [nuscenes_infos_10sweeps_train.pkl],
-    'test': [nuscenes_infos_10sweeps_val.pkl],
-}
+} 
 
 POINT_CLOUD_RANGE: [0, -20.0, -2, 50, 20.0, 4]
 MIN_POINTS_OF_GT: 1
