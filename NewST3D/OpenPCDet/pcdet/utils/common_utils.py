@@ -15,7 +15,10 @@ import torch.multiprocessing as mp
 def check_numpy_to_torch(x):
     if isinstance(x, np.ndarray):
         return torch.from_numpy(x).float(), True
+    if isinstance(x, np.float64) or isinstance(x, np.float32):
+        return torch.tensor([x]).float(), True
     return x, False
+
 
 
 def limit_period(val, offset=0.5, period=np.pi):
@@ -221,6 +224,10 @@ def merge_results_dist(result_part, size, tmpdir):
     shutil.rmtree(tmpdir)
     return ordered_results
 
+def add_prefix_to_dict(dict, prefix):
+    for key in list(dict.keys()):
+        dict[prefix + key] = dict.pop(key)
+    return dict
 
 def scatter_point_inds(indices, point_inds, shape):
     ret = -1 * torch.ones(*shape, dtype=point_inds.dtype, device=point_inds.device)
@@ -267,7 +274,7 @@ class DataReader(object):
                 self.sampler.set_epoch(self.cur_epoch)
             self.construct_iter()
             return self.dataloader_iter.next()
-            
+
 class AverageMeter(object):
     """Computes and stores the average and current value"""
     def __init__(self):
@@ -284,3 +291,17 @@ class AverageMeter(object):
         self.sum += val * n
         self.count += n
         self.avg = self.sum / self.count
+
+def set_bn_train(m):
+    classname = m.__class__.__name__
+    if classname.find('BatchNorm') != -1:
+        m.train()
+
+
+def calculate_gradient_norm(model):
+    total_norm = 0
+    for p in model.parameters():
+        param_norm = p.grad.data.norm(2)
+        total_norm += param_norm.item() ** 2
+    total_norm = total_norm ** (1. / 2)
+    return total_norm
