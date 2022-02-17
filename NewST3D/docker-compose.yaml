@@ -1,6 +1,6 @@
 version: "3.8"
 services:
-  st3d:
+  newst3d:
     build:
       context: .
       dockerfile: Dockerfile
@@ -15,4 +15,4 @@ services:
     volumes:
       - /mnt/wato-drive/nuScenes:/home/nuScenes:z
       - /mnt/wato-drive/perception_pcds/road:/home/road:z
-      - /home/ch35li/alvin/PointPillars/ST3D/OpenPCDet:/home/
+      - /home/ch35li/alvin/PointPillars/NewST3D:/home/
