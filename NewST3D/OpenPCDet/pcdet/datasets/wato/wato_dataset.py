@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 from tqdm import tqdm
 import glob
+import os
 
 from ...ops.roiaware_pool3d import roiaware_pool3d_utils
 from ...utils import common_utils, box_utils, self_training_utils
@@ -20,6 +21,22 @@ class WatoDataset(DatasetTemplate):
         self.infos = []
         self.lidar_paths = glob.glob(self.root_path + "*.npy")
 
+    # def include_nuscenes_data(self, mode):
+    #     self.logger.info('Loading WATO dataset')
+    #     nuscenes_infos = []
+
+    #     for info_path in self.dataset_cfg.INFO_PATH[mode]:
+    #         info_path = self.root_path / info_path
+    #         if not info_path.exists():
+    #             continue
+    #         with open(info_path, 'rb') as f:
+    #             infos = pickle.load(f)
+    #             nuscenes_infos.extend(infos)
+
+    #     self.infos.extend(nuscenes_infos)
+    #     self.logger.info('Total samples for NuScenes dataset: %d' % (len(nuscenes_infos)))
+
+
     @staticmethod
     def remove_ego_points(points, center_radius=1.0):
         mask = ~((np.abs(points[:, 0]) < center_radius) & (np.abs(points[:, 1]) < center_radius))
@@ -29,7 +46,6 @@ class WatoDataset(DatasetTemplate):
         return len(self.lidar_paths)
 
     def __getitem__(self, index):
-        # TODO
         points = np.load(self.lidar_paths[index])
         points = self.remove_ego_points(points)
 
@@ -38,17 +54,17 @@ class WatoDataset(DatasetTemplate):
 
         input_dict = {
             'points': points,
-            'frame_id': self.lidar_paths[index].split("/")[-1][2:].split(".")[0]
+            'frame_id': int(os.path.basename(self.lidar_paths[index]).split(".")[0])
         }
 
 
         if self.dataset_cfg.get('USE_PSEUDO_LABEL', None) and self.training:
             self.fill_pseudo_labels(input_dict)
 
-        if self.dataset_cfg.get('SET_NAN_VELOCITY_TO_ZEROS', False) and not self.dataset_cfg.get('USE_PSEUDO_LABEL', None):
-            gt_boxes = input_dict['gt_boxes']
-            gt_boxes[np.isnan(gt_boxes)] = 0
-            input_dict['gt_boxes'] = gt_boxes
+        # if self.dataset_cfg.get('SET_NAN_VELOCITY_TO_ZEROS', False) and not self.dataset_cfg.get('USE_PSEUDO_LABEL', None):
+        #     gt_boxes = input_dict['gt_boxes']
+        #     gt_boxes[np.isnan(gt_boxes)] = 0
+        #     input_dict['gt_boxes'] = gt_boxes
 
         # if not self.dataset_cfg.PRED_VELOCITY and 'gt_boxes' in input_dict and not self.dataset_cfg.get('USE_PSEUDO_LABEL', None):
         #     input_dict['gt_boxes'] = input_dict['gt_boxes'][:, [0, 1, 2, 3, 4, 5, 6]]
@@ -104,14 +120,3 @@ class WatoDataset(DatasetTemplate):
 
         return annos
 
-
-if __name__ == '__main__':
-    import yaml
-    import argparse
-    from pathlib import Path
-    from easydict import EasyDict
-
-    parser = argparse.ArgumentParser(description='arg parser')
-    parser.add_argument('--cfg_file', type=str, default=None, help='specify the config of dataset')
-    parser.add_argument('--version', type=str, default='v1.0-trainval', help='')
-    args = parser.parse_args()

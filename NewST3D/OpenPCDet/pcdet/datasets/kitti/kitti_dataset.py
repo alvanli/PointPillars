@@ -58,6 +58,7 @@ class KittiDataset(DatasetTemplate):
         self.root_split_path = self.root_path / ('training' if self.split != 'test' else 'testing')
 
         split_dir = self.root_path / 'ImageSets' / (self.split + '.txt')
+        print("heyo split_dir.exists()", split_dir.exists())
         self.sample_id_list = [x.strip() for x in open(split_dir).readlines()] if split_dir.exists() else None
 
     def get_lidar(self, idx):
@@ -198,9 +199,15 @@ class KittiDataset(DatasetTemplate):
                 annotations['gt_boxes_lidar'] = gt_boxes_lidar
 
                 info['annos'] = annotations
+                points = self.get_lidar(sample_idx)
+                np.save("/home/KITTI/npy/kit_{}.npy".format(sample_idx), points)
+                # with open(, "wb") as f:
+                #     pickle.dump(points, f)
 
                 if count_inside_pts:
                     points = self.get_lidar(sample_idx)
+                    with open("/home/KITTI/pkl/kit_{}.pkl".format(sample_idx), "wb") as f:
+                        pickle.dump(points, f)
                     calib = self.get_calib(sample_idx)
                     pts_rect = calib.lidar_to_rect(points[:, 0:3])
 
@@ -474,10 +481,11 @@ if __name__ == '__main__':
         from pathlib import Path
         from easydict import EasyDict
         dataset_cfg = EasyDict(yaml.safe_load(open(sys.argv[2])))
-        ROOT_DIR = (Path(__file__).resolve().parent / '../../../').resolve()
+        # ROOT_DIR = (Path(__file__).resolve().parent / '../../../').resolve()
+        DB_BASE = Path('/home/KITTI').resolve()
         create_kitti_infos(
             dataset_cfg=dataset_cfg,
             class_names=['Car', 'Pedestrian', 'Cyclist'],
-            data_path=ROOT_DIR / 'data' / 'kitti',
-            save_path=ROOT_DIR / 'data' / 'kitti'
+            data_path=DB_BASE,
+            save_path=DB_BASE
         )

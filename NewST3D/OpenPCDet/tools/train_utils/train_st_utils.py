@@ -51,10 +51,12 @@ def train_one_epoch_st(model, optimizer, source_reader, target_loader, model_fun
         st_loss_meter.update(st_loss.item())
 
         # count number of used ps bboxes in this batch
-        pos_pseudo_bbox = target_batch['pos_ps_bbox'].mean().item()
-        ign_pseudo_bbox = target_batch['ign_ps_bbox'].mean().item()
-        ps_bbox_meter.update(pos_pseudo_bbox)
-        ignore_ps_bbox_meter.update(ign_pseudo_bbox)
+
+        if 'pos_ps_bbox' in target_batch.keys():
+            pos_pseudo_bbox = target_batch['pos_ps_bbox'].mean().item()
+            ign_pseudo_bbox = target_batch['ign_ps_bbox'].mean().item()
+            ps_bbox_meter.update(pos_pseudo_bbox)
+            ignore_ps_bbox_meter.update(ign_pseudo_bbox)
 
         st_tb_dict = common_utils.add_prefix_to_dict(st_tb_dict, 'st_')
         disp_dict.update(common_utils.add_prefix_to_dict(st_disp_dict, 'st_'))
