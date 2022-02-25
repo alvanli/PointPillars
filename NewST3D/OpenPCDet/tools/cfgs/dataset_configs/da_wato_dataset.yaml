@@ -1,5 +1,5 @@
 DATASET: 'WatoDataset'
-DATA_PATH: '/home/road/npy'
+DATA_PATH: '/home/road/cars'
 
 VERSION: 'v1.0-trainval'
 SET_NAN_VELOCITY_TO_ZEROS: True

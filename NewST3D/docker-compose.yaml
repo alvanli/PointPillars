@@ -14,6 +14,6 @@ services:
     tty: true 
     volumes:
       - /mnt/wato-drive/nuScenes:/home/nuScenes:z
-      - /mnt/wato-drive/perception_pcds/road:/home/road:z
+      - /mnt/wato-drive/perception_pcds/:/home/road:z
       - /home/ch35li/alvin/PointPillars/NewST3D:/home/
       - /mnt/wato-drive/KITTI/dataset/KITTI/object:/home/KITTI

@@ -1,4 +1,5 @@
 import glob
+from tqdm import tqdm
 import numpy as np
 import open3d as o3d
 from pypcd import pypcd
@@ -17,15 +18,15 @@ def visualize_pc(new_pc_rect, label=None):
 
 
 if __name__ == "__main__":
-    for filename in glob.iglob("/mnt/wato-drive/perception_pcds/feb2022/pc*.pcd", recursive=True):
+    for filename in tqdm(glob.glob("/mnt/wato-drive/perception_pcds/feb24_2022/wayback1/pc*.pcd", recursive=True)):
         file_num = filename.split("/")[-1][2:].split(".")[0]
-        pc = pypcd.PointCloud.from_path(filename)
-        pc_data = pc.pc_data
-        a = pc_data["intensity"]
-        print("pcdata", a)
+        # pc = pypcd.PointCloud.from_path(filename)
+        # pc_data = pc.pc_data
+        # a = pc_data["intensity"]
+        # print("pcdata", a)
         pcd_in = o3d.io.read_point_cloud(filename).remove_non_finite_points(remove_nan=True)
-        print(pcd_in.points.shape)
-        input()
+        # print(pcd_in.points.shape)
+        # input()
         np_pcd = np.asarray(pcd_in.points)
-        print(len(np_pcd))
-        np.save("/mnt/wato-drive/perception_pcds/road/npy/{}.npy".format(file_num), np_pcd)
+        # print(file_num, len(np_pcd))
+        np.save("/mnt/wato-drive/perception_pcds/road_feb24_2022/npy/{}.npy".format(file_num), np_pcd)

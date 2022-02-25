@@ -2,6 +2,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
+import torch
 import torch.utils.data as torch_data
 
 from ..utils import common_utils
@@ -211,6 +212,20 @@ class DatasetTemplate(torch_data.Dataset):
                 ...
         """
         if self.training:
+            # filter gt_boxes without points
+            num_points_in_gt = data_dict.get('num_points_in_gt', None)
+            if num_points_in_gt is None:
+                num_points_in_gt = roiaware_pool3d_utils.points_in_boxes_cpu(
+                    torch.from_numpy(data_dict['points'][:, :3]),
+                    torch.from_numpy(data_dict['gt_boxes'][:, :7])).numpy().sum(axis=1)
+
+            mask = (num_points_in_gt >= self.dataset_cfg.get('MIN_POINTS_OF_GT', 1))
+            data_dict['gt_boxes'] = data_dict['gt_boxes'][mask]
+            data_dict['gt_names'] = data_dict['gt_names'][mask]
+            if 'gt_classes' in data_dict:
+                data_dict['gt_classes'] = data_dict['gt_classes'][mask]
+                data_dict['gt_scores'] = data_dict['gt_scores'][mask]
+
             assert 'gt_boxes' in data_dict, 'gt_boxes should be provided for training'
             gt_boxes_mask = np.array([n in self.class_names for n in data_dict['gt_names']], dtype=np.bool_)
 
@@ -220,30 +235,30 @@ class DatasetTemplate(torch_data.Dataset):
                     'gt_boxes_mask': gt_boxes_mask
                 }
             )
+            if len(data_dict['gt_boxes']) == 0:
+                new_index = np.random.randint(self.__len__())
+                return self.__getitem__(new_index)
 
         if data_dict.get('gt_boxes', None) is not None:
             selected = common_utils.keep_arrays_by_name(data_dict['gt_names'], self.class_names)
             data_dict['gt_boxes'] = data_dict['gt_boxes'][selected]
             data_dict['gt_names'] = data_dict['gt_names'][selected]
-            gt_classes = np.array([self.class_names.index(n) + 1 for n in data_dict['gt_names']], dtype=np.int32)
+            # for pseudo label has ignore labels.
+            if 'gt_classes' not in data_dict:
+                gt_classes = np.array([self.class_names.index(n) + 1 for n in data_dict['gt_names']], dtype=np.int32)
+            else:
+                gt_classes = data_dict['gt_classes'][selected]
+                data_dict['gt_scores'] = data_dict['gt_scores'][selected]
             gt_boxes = np.concatenate((data_dict['gt_boxes'], gt_classes.reshape(-1, 1).astype(np.float32)), axis=1)
             data_dict['gt_boxes'] = gt_boxes
 
-            if data_dict.get('gt_boxes2d', None) is not None:
-                data_dict['gt_boxes2d'] = data_dict['gt_boxes2d'][selected]
-
-        if data_dict.get('points', None) is not None:
-            data_dict = self.point_feature_encoder.forward(data_dict)
+        data_dict = self.point_feature_encoder.forward(data_dict)
 
         data_dict = self.data_processor.forward(
             data_dict=data_dict
         )
-
-        if self.training and len(data_dict['gt_boxes']) == 0:
-            new_index = np.random.randint(self.__len__())
-            return self.__getitem__(new_index)
-
         data_dict.pop('gt_names', None)
+        data_dict.pop('gt_classes', None)
 
         return data_dict
 
@@ -272,43 +287,12 @@ class DatasetTemplate(torch_data.Dataset):
                     for k in range(batch_size):
                         batch_gt_boxes3d[k, :val[k].__len__(), :] = val[k]
                     ret[key] = batch_gt_boxes3d
-                elif key in ['gt_boxes2d']:
-                    max_boxes = 0
-                    max_boxes = max([len(x) for x in val])
-                    batch_boxes2d = np.zeros((batch_size, max_boxes, val[0].shape[-1]), dtype=np.float32)
+                elif key in ['gt_scores']:
+                    max_gt = max([len(x) for x in val])
+                    batch_scores = np.zeros((batch_size, max_gt), dtype=np.float32)
                     for k in range(batch_size):
-                        if val[k].size > 0:
-                            batch_boxes2d[k, :val[k].__len__(), :] = val[k]
-                    ret[key] = batch_boxes2d
-                elif key in ["images", "depth_maps"]:
-                    # Get largest image size (H, W)
-                    max_h = 0
-                    max_w = 0
-                    for image in val:
-                        max_h = max(max_h, image.shape[0])
-                        max_w = max(max_w, image.shape[1])
-
-                    # Change size of images
-                    images = []
-                    for image in val:
-                        pad_h = common_utils.get_pad_params(desired_size=max_h, cur_size=image.shape[0])
-                        pad_w = common_utils.get_pad_params(desired_size=max_w, cur_size=image.shape[1])
-                        pad_width = (pad_h, pad_w)
-                        # Pad with nan, to be replaced later in the pipeline.
-                        pad_value = np.nan
-
-                        if key == "images":
-                            pad_width = (pad_h, pad_w, (0, 0))
-                        elif key == "depth_maps":
-                            pad_width = (pad_h, pad_w)
-
-                        image_pad = np.pad(image,
-                                           pad_width=pad_width,
-                                           mode='constant',
-                                           constant_values=pad_value)
-
-                        images.append(image_pad)
-                    ret[key] = np.stack(images, axis=0)
+                        batch_scores[k, :val[k].__len__()] = val[k]
+                    ret[key] = batch_scores
                 else:
                     ret[key] = np.stack(val, axis=0)
             except:

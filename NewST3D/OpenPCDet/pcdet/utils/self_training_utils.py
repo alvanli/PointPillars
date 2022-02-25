@@ -94,7 +94,7 @@ def save_pseudo_label_epoch(model, val_loader, rank, leave_pbar, ps_label_dir, c
         with torch.no_grad():
             load_data_to_gpu(target_batch)
             pred_dicts, ret_dict = model(target_batch)
-        if cur_it % 1000 == 0:
+        if cur_it % 2000 == 0 and cur_it != 0:
             with open("/home/OpenPCDet/output/da-nuscenes-wato_models/secondiou_st3d/secondiou_st3d/monke/pred_ret_targ_ep{}_{}.pkl".format(cur_epoch, cur_it), "wb") as f:
                 pkl.dump((pred_dicts, ret_dict, target_batch), f)
         pos_ps_batch, ign_ps_batch = save_pseudo_label_batch(

@@ -135,7 +135,7 @@ class NuScenesDataset(DatasetTemplate):
 
             input_dict.update({
                 'gt_names': info['gt_names'] if mask is None else info['gt_names'][mask],
-                'gt_boxes': info['gt_boxes'] if mask is None else info['gt_boxes'][mask]
+                'gt_boxes': info['gt_boxes'][:, :7] if mask is None else info['gt_boxes'][mask]
             })
 
         data_dict = self.prepare_data(data_dict=input_dict)
@@ -266,7 +266,7 @@ class NuScenesDataset(DatasetTemplate):
             points = self.get_lidar_with_sweeps(idx, max_sweeps=max_sweeps)
             gt_boxes = info['gt_boxes']
             gt_names = info['gt_names']
-
+            
             box_idxs_of_pts = roiaware_pool3d_utils.points_in_boxes_gpu(
                 torch.from_numpy(points[:, 0:3]).unsqueeze(dim=0).float().cuda(),
                 torch.from_numpy(gt_boxes[:, 0:7]).unsqueeze(dim=0).float().cuda()
@@ -357,18 +357,19 @@ if __name__ == '__main__':
 
     if args.func == 'create_nuscenes_infos':
         dataset_cfg = EasyDict(yaml.safe_load(open(args.cfg_file)))
-        ROOT_DIR = (Path(__file__).resolve().parent / '../../../').resolve()
+        # ROOT_DIR = (Path(__file__).resolve().parent / '../../../').resolve()
+        DATA_PATH = Path("/home/nuScenes").resolve()
         dataset_cfg.VERSION = args.version
         create_nuscenes_info(
             version=dataset_cfg.VERSION,
-            data_path=ROOT_DIR / 'data' / 'nuscenes',
-            save_path=ROOT_DIR / 'data' / 'nuscenes',
+            data_path=DATA_PATH,
+            save_path=DATA_PATH,
             max_sweeps=dataset_cfg.MAX_SWEEPS,
         )
 
         nuscenes_dataset = NuScenesDataset(
             dataset_cfg=dataset_cfg, class_names=None,
-            root_path=ROOT_DIR / 'data' / 'nuscenes',
+            root_path=DATA_PATH,
             logger=common_utils.create_logger(), training=True
         )
         nuscenes_dataset.create_groundtruth_database(max_sweeps=dataset_cfg.MAX_SWEEPS)

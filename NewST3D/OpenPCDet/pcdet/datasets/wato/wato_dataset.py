@@ -14,7 +14,7 @@ from ..dataset import DatasetTemplate
 
 class WatoDataset(DatasetTemplate):
     def __init__(self, dataset_cfg, class_names, training=True, root_path=None, logger=None):
-        root_path = "/home/road/npy/"
+        root_path = "/home/road/cars/"
         super().__init__(
             dataset_cfg=dataset_cfg, class_names=class_names, training=training, root_path=root_path, logger=logger
         )
@@ -54,7 +54,7 @@ class WatoDataset(DatasetTemplate):
 
         input_dict = {
             'points': points,
-            'frame_id': int(os.path.basename(self.lidar_paths[index]).split(".")[0])
+            'frame_id': int(os.path.basename(self.lidar_paths[index]).split("_")[-1][:-4])
         }
 
 
