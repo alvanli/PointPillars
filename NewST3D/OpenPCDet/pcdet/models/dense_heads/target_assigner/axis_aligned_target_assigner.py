@@ -45,10 +45,9 @@ class AxisAlignedTargetAssigner(object):
         bbox_targets = []
         cls_labels = []
         reg_weights = []
-
         batch_size = gt_boxes_with_classes.shape[0]
-        gt_classes = gt_boxes_with_classes[:, :, -1]
-        gt_boxes = gt_boxes_with_classes[:, :, :-1]
+        gt_classes = gt_boxes_with_classes[:, :, 7]
+        gt_boxes = gt_boxes_with_classes[:, :, :7]
         for k in range(batch_size):
             cur_gt = gt_boxes[k]
             cnt = cur_gt.__len__() - 1
@@ -56,13 +55,13 @@ class AxisAlignedTargetAssigner(object):
                 cnt -= 1
             cur_gt = cur_gt[:cnt + 1]
             cur_gt_classes = gt_classes[k][:cnt + 1].int()
-
+            
             target_list = []
             for anchor_class_name, anchors in zip(self.anchor_class_names, all_anchors):
                 if cur_gt_classes.shape[0] > 1:
-                    mask = torch.from_numpy(self.class_names[cur_gt_classes.cpu() - 1] == anchor_class_name)
+                    mask = torch.from_numpy(self.class_names[cur_gt_classes.cpu().abs() - 1] == anchor_class_name)
                 else:
-                    mask = torch.tensor([self.class_names[c - 1] == anchor_class_name
+                    mask = torch.tensor([self.class_names[torch.abs(c) - 1] == anchor_class_name
                                          for c in cur_gt_classes], dtype=torch.bool)
 
                 if self.use_multihead:

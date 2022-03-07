@@ -19,23 +19,7 @@ class WatoDataset(DatasetTemplate):
             dataset_cfg=dataset_cfg, class_names=class_names, training=training, root_path=root_path, logger=logger
         )
         self.infos = []
-        self.lidar_paths = glob.glob(self.root_path + "*.npy")
-
-    # def include_nuscenes_data(self, mode):
-    #     self.logger.info('Loading WATO dataset')
-    #     nuscenes_infos = []
-
-    #     for info_path in self.dataset_cfg.INFO_PATH[mode]:
-    #         info_path = self.root_path / info_path
-    #         if not info_path.exists():
-    #             continue
-    #         with open(info_path, 'rb') as f:
-    #             infos = pickle.load(f)
-    #             nuscenes_infos.extend(infos)
-
-    #     self.infos.extend(nuscenes_infos)
-    #     self.logger.info('Total samples for NuScenes dataset: %d' % (len(nuscenes_infos)))
-
+        self.lidar_paths = glob.glob(self.root_path + "pc*.npy")
 
     @staticmethod
     def remove_ego_points(points, center_radius=1.0):
@@ -54,7 +38,7 @@ class WatoDataset(DatasetTemplate):
 
         input_dict = {
             'points': points,
-            'frame_id': int(os.path.basename(self.lidar_paths[index]).split("_")[-1][:-4])
+            'frame_id': int(os.path.basename(self.lidar_paths[index]).split(".")[0][2:])
         }
 
 
@@ -100,9 +84,6 @@ class WatoDataset(DatasetTemplate):
             pred_dict = get_template_prediction(pred_scores.shape[0])
             if pred_scores.shape[0] == 0:
                 return pred_dict
-
-            if self.dataset_cfg.get('SHIFT_COOR', None):
-                pred_boxes[:, 0:3] -= self.dataset_cfg.SHIFT_COOR
 
             pred_dict['name'] = np.array(class_names)[pred_labels - 1]
             pred_dict['score'] = pred_scores

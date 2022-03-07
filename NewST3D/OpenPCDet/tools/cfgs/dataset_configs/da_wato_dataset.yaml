@@ -10,7 +10,7 @@ DATA_SPLIT: {
     'test': val
 } 
 
-POINT_CLOUD_RANGE: [-50, -50, -2, 50, 50, 4]
+POINT_CLOUD_RANGE: [-50, -20, -2, 50, 20, 4]
 MIN_POINTS_OF_GT: 1
 
 DATA_AUGMENTOR:
@@ -36,7 +36,7 @@ DATA_AUGMENTOR:
 POINT_FEATURE_ENCODING: {
     encoding_type: absolute_coordinates_encoding,
     used_feature_list: ['x', 'y', 'z'],
-    src_feature_list: ['x', 'y', 'z', 'intensity'],
+    src_feature_list: ['x', 'y', 'z'],
 }
 
 

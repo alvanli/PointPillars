@@ -7,8 +7,7 @@ from tqdm import tqdm
 
 from ...ops.roiaware_pool3d import roiaware_pool3d_utils
 from ...utils import common_utils
-from ..dataset import DatasetTemplate
-
+from ..dataset import DatasetTemplate, LISA
 
 class NuScenesDataset(DatasetTemplate):
     def __init__(self, dataset_cfg, class_names, training=True, root_path=None, logger=None):
@@ -18,6 +17,7 @@ class NuScenesDataset(DatasetTemplate):
         )
         self.infos = []
         self.include_nuscenes_data(self.mode)
+
         if self.training and self.dataset_cfg.get('BALANCED_RESAMPLING', False):
             self.infos = self.balanced_infos_resampling(self.infos)
 
@@ -121,8 +121,17 @@ class NuScenesDataset(DatasetTemplate):
         info = copy.deepcopy(self.infos[index])
         points = self.get_lidar_with_sweeps(index, max_sweeps=self.dataset_cfg.MAX_SWEEPS)
 
+        if self.training and np.random.random() < 0.3:
+            atmos_model = np.random.choice(['snow', 'rain', 'chu_hogg_fog', 'moderate_advection_fog'])
+            lisa = LISA(atm_model=atmos_model)
+            if atmos_model not in ["chu_hogg_fog", "moderate_advection_fog"]:
+                new_points = lisa.augment(points[:, :4], np.random.randint(5, 20))
+            else:
+                new_points = lisa.augment(points[:, :4])
+            points[:, :3] = new_points[:, :3]
+
         input_dict = {
-            'points': points,
+            'points': points[:, :3],
             'frame_id': Path(info['lidar_path']).stem,
             'metadata': {'token': info['token']}
         }

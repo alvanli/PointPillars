@@ -49,7 +49,10 @@ ADD OpenPCDet /home/OpenPCDet
 RUN pip3 install --upgrade pip && \
     pip3 install numba==0.50.0 scikit-image scipy pillow==8.0 && \
     pip3 install fire tensorboardX protobuf opencv-python torch==1.5 torchvision nuscenes-devkit && \
-    pip3 install easydict pyyaml==5.4.1 spconv-cu102	
+    pip3 install easydict pyyaml==5.4.1 spconv-cu102 PyMieScatt
+
+# WORKDIR "/home/LISA"
+# RUN pip3 install .
 
 WORKDIR "/home/OpenPCDet"
 RUN python3 setup.py develop 

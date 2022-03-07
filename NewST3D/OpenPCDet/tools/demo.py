@@ -102,16 +102,12 @@ def main():
             load_data_to_gpu(data_dict)
             pred_dicts, recall_dicts = model.forward(data_dict)
 
-            with open("/home/OpenPCDet/output/da-nuscenes-wato_models/secondiou_st3d/secondiou_st3d/pickled_dicts/bbox_{}.pickle".format(int(data_dict["frame_id"])), "wb") as f:
-                pickle.dump((pred_dicts, recall_dicts), f)
+            base_save_dir = "/home/OpenPCDet/output/da-nuscenes-wato_models/secondiou_st3d/secondiou_st3d/{}_demos/".format(os.path.basename(args.ckpt).split(".")[0])
+            if not os.path.exists(base_save_dir):
+                os.mkdir(base_save_dir)
+            with open(base_save_dir + "bbox_{}.pickle".format(int(data_dict["frame_id"])), "wb") as f:
+                pickle.dump((data_dict["points"], pred_dicts), f)
                 
-            # V.draw_scenes(
-            #     points=data_dict['points'][:, 1:], ref_boxes=pred_dicts[0]['pred_boxes'],
-            #     ref_scores=pred_dicts[0]['pred_scores'], ref_labels=pred_dicts[0]['pred_labels']
-            # )
-
-            # if not OPEN3D_FLAG:
-            #     mlab.show(stop=True)
 
     logger.info('Demo done.')
 

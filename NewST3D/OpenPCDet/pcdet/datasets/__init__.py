@@ -4,7 +4,7 @@ from torch.utils.data import DistributedSampler as _DistributedSampler
 
 from pcdet.utils import common_utils
 
-from .dataset import DatasetTemplate
+from .dataset import DatasetTemplate, LISA
 from .kitti.kitti_dataset import KittiDataset
 from .nuscenes.nuscenes_dataset import NuScenesDataset
 from .waymo.waymo_dataset import WaymoDataset
@@ -12,8 +12,10 @@ from .pandaset.pandaset_dataset import PandasetDataset
 from .lyft.lyft_dataset import LyftDataset
 from .wato.wato_dataset import WatoDataset
 
+
 __all__ = {
     'DatasetTemplate': DatasetTemplate,
+    'LISA': LISA,
     'KittiDataset': KittiDataset,
     'NuScenesDataset': NuScenesDataset,
     'WaymoDataset': WaymoDataset,
