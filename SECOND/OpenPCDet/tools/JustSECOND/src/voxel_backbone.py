@@ -100,7 +100,7 @@ class VoxelBackBone8x(nn.Module):
                 encoded_spconv_tensor: sparse tensor
         """
         voxel_features, voxel_coords = batch_dict['voxel_features'], batch_dict['voxel_coords']
-        batch_size = batch_dict['batch_size'] # BATCH_SIZE
+        batch_size = BATCH_SIZE # batch_dict['batch_size'] # BATCH_SIZE
         input_sp_tensor = spconv.SparseConvTensor(
             features=voxel_features,
             indices=voxel_coords.int(),

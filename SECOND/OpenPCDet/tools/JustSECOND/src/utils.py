@@ -1,4 +1,5 @@
 import logging
+from typing import Set
 import numpy as np
 import torch
 import torch.nn as nn
@@ -6,7 +7,7 @@ import torch.nn.functional as F
 
 from src import iou3d_nms_cuda
 
-BATCH_SIZE = 8
+BATCH_SIZE = 1
 
 def create_logger(log_file=None, rank=0, log_level=logging.INFO):
     logger = logging.getLogger(__name__)
@@ -25,6 +26,31 @@ def create_logger(log_file=None, rank=0, log_level=logging.INFO):
     return logger
 
 logger = create_logger()
+
+
+def mask_points_by_range(points, limit_range):
+    mask = (points[:, 0] >= limit_range[0]) & (points[:, 0] <= limit_range[3]) \
+           & (points[:, 1] >= limit_range[1]) & (points[:, 1] <= limit_range[4])
+    return mask
+
+    
+import spconv.pytorch as spconv
+
+def find_all_spconv_keys(model: nn.Module, prefix="") -> Set[str]:
+    """
+    Finds all spconv keys that need to have weight's transposed
+    """
+    found_keys: Set[str] = set()
+    for name, child in model.named_children():
+        new_prefix = f"{prefix}.{name}" if prefix != "" else name
+
+        if isinstance(child, spconv.conv.SparseConvolution):
+            new_prefix = f"{new_prefix}.weight"
+            found_keys.add(new_prefix)
+
+        found_keys.update(find_all_spconv_keys(child, prefix=new_prefix))
+
+    return found_keys
 
 def check_numpy_to_torch(x):
     if isinstance(x, np.ndarray):

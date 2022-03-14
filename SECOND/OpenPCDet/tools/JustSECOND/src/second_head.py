@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from .roi_head_template import RoIHeadTemplate
 from .utils import check_numpy_to_torch, BATCH_SIZE
+from .dataset import POINT_CLOUD_RANGE, VOXEL_SIZE
 
 class SECONDHead(RoIHeadTemplate):
     def __init__(self, input_channels, model_cfg, num_class=1):
@@ -50,16 +51,15 @@ class SECONDHead(RoIHeadTemplate):
         Returns:
 
         """
-        batch_size = batch_dict['batch_size'] # BATCH_SIZE
+        batch_size = BATCH_SIZE #batch_dict['batch_size'] # BATCH_SIZE
         rois = batch_dict['rois'].detach()
         spatial_features_2d = batch_dict['spatial_features_2d'].detach()
         height, width = spatial_features_2d.size(2), spatial_features_2d.size(3)
 
-        dataset_cfg = batch_dict['dataset_cfg']
-        min_x = dataset_cfg.POINT_CLOUD_RANGE[0]
-        min_y = dataset_cfg.POINT_CLOUD_RANGE[1]
-        voxel_size_x = dataset_cfg.DATA_PROCESSOR[-1].VOXEL_SIZE[0]
-        voxel_size_y = dataset_cfg.DATA_PROCESSOR[-1].VOXEL_SIZE[1]
+        min_x = POINT_CLOUD_RANGE[0]
+        min_y = POINT_CLOUD_RANGE[1]
+        voxel_size_x = VOXEL_SIZE[0]
+        voxel_size_y = VOXEL_SIZE[1]
         down_sample_ratio = self.model_cfg.ROI_GRID_POOL.DOWNSAMPLE_RATIO
 
         pooled_features_list = []
@@ -120,7 +120,7 @@ class SECONDHead(RoIHeadTemplate):
         rcnn_iou = self.iou_layers(shared_features).transpose(1, 2).contiguous().squeeze(dim=1)  # (B*N, 1)
 
         if not self.training:
-            batch_dict['batch_cls_preds'] = rcnn_iou.view(batch_dict['batch_size'], -1, rcnn_iou.shape[-1]) # rcnn_iou.view(BATCH_SIZE, -1, rcnn_iou.shape[-1])
+            batch_dict['batch_cls_preds'] = rcnn_iou.view(BATCH_SIZE, -1, rcnn_iou.shape[-1]) #rcnn_iou.view(batch_dict['batch_size'], -1, rcnn_iou.shape[-1]) # 
             batch_dict['batch_box_preds'] = batch_dict['rois']
             batch_dict['cls_preds_normalized'] = False
         else:
