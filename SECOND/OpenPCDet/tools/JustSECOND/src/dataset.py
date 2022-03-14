@@ -142,7 +142,9 @@ class PointCloudPrep():
         for key, val in data_dict.items():
             if key in ['voxels', 'voxel_num_points']:
                 ret[key] = np.concatenate(val, axis=0)
-            elif key in ['points', 'voxel_coords']:
+            elif key in ['points']:
+                continue
+            elif key in ['voxel_coords']:
                 coors = []
                 for i, coor in enumerate(val):
                     coor_pad = np.pad(coor, ((0, 0), (1, 0)), mode='constant', constant_values=i)
@@ -176,5 +178,5 @@ class PointCloudPrep():
         data_dict = self.point_feature_encoder(input_dict)
         data_dict = self.data_process(data_dict)
         data_dict = self.get_batch(data_dict)
-    
+        data_dict.pop("points", None)
         return self.load_data_to_gpu(data_dict)
