@@ -13,12 +13,12 @@ from .anchor_head_single import AnchorHeadSingle
 from .second_head import SECONDHead
 from .dataset import NUM_POINT_FEATURES, GRID_SIZE, POINT_CLOUD_RANGE, VOXEL_SIZE
 
-BASE_DIR = "/home/OpenPCDet/tools/JustSECOND/"
+# BASE_DIR = "/home/OpenPCDet/tools/JustSECOND/"
 
 class SECONDNetIoU(nn.Module):
     def __init__(self, model_cfg, num_class=3):
         super().__init__()
-        self.model_cfg = model_cfg
+
         self.num_class = num_class
         self.class_names = ['car','truck', 'construction_vehicle', 'bus', 'trailer',
               'barrier', 'motorcycle', 'bicycle', 'pedestrian', 'traffic_cone']
@@ -28,6 +28,7 @@ class SECONDNetIoU(nn.Module):
             'vfe', 'backbone_3d', 'map_to_bev_module', 
             'backbone_2d', 'dense_head', 'roi_head'
         ]
+        self.model_cfg = model_cfg
         self.module_list = self.build_networks()
 
     def build_networks(self):
@@ -40,7 +41,7 @@ class SECONDNetIoU(nn.Module):
             'voxel_size': VOXEL_SIZE,
             'depth_downsample_factor': None
         }
-        logger.info("model_info_dict {}".format(model_info_dict))
+        # logger.info("model_info_dict {}".format(model_info_dict))
         # model_info_dict = {
         #     'module_list': [],
         #     'num_rawpoint_features': 3, # ["x", "y", "z"]
@@ -52,13 +53,11 @@ class SECONDNetIoU(nn.Module):
         # }
         
         vfe_module = MeanVFE(
-            model_cfg=self.model_cfg.VFE, 
             num_point_features=model_info_dict['num_rawpoint_features'])
         model_info_dict["module_list"].append(vfe_module)
         self.add_module("vfe", vfe_module)
 
         backbone_3d_module = VoxelBackBone8x(
-            model_cfg=self.model_cfg.BACKBONE_3D, 
             input_channels=model_info_dict["num_point_features"], 
             grid_size=model_info_dict["grid_size"])
         model_info_dict["module_list"].append(backbone_3d_module)
@@ -203,7 +202,7 @@ class SECONDNetIoU(nn.Module):
 
         """
         post_process_cfg = self.model_cfg.POST_PROCESSING
-        batch_size = BATCH_SIZE # batch_dict['batch_size'] # BATCH_SIZE
+        batch_size = batch_dict['batch_size'] # BATCH_SIZE
         recall_dict = {}
         pred_dicts = []
         for index in range(batch_size):
@@ -335,7 +334,7 @@ class SECONDNetIoU(nn.Module):
 
         return it, epoch
 
-    def load_params_from_file(self, filename, logger, to_cpu=False):
+    def load_params_from_file(self, filename, to_cpu=False, logger=None):
         if not os.path.isfile(filename):
             raise FileNotFoundError
 
@@ -356,7 +355,7 @@ class SECONDNetIoU(nn.Module):
 
         logger.info('==> Done (loaded %d/%d)' % (len(update_model_state), len(state_dict)))
 
-    def load_params_with_optimizer(self, filename, to_cpu=False, optimizer=None, logger=None):
+    def load_params_with_optimizer(self, filename, to_cpu=False, optimizer=None):
         if not os.path.isfile(filename):
             raise FileNotFoundError
 
@@ -380,9 +379,6 @@ class SECONDNetIoU(nn.Module):
                 if os.path.exists(optimizer_filename):
                     optimizer_ckpt = torch.load(optimizer_filename, map_location=loc_type)
                     optimizer.load_state_dict(optimizer_ckpt['optimizer_state'])
-
-        if 'version' in checkpoint:
-            print('==> Checkpoint trained from version: %s' % checkpoint['version'])
         logger.info('==> Done')
 
         return it, epoch
@@ -410,7 +406,6 @@ class SECONDNetIoU(nn.Module):
 
             if key in state_dict and state_dict[key].shape == val.shape:
                 update_model_state[key] = val
-                # logger.info('Update weight %s: %s' % (key, str(val.shape)))
 
         if strict:
             self.load_state_dict(update_model_state)

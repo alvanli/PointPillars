@@ -51,7 +51,7 @@ class SECONDHead(RoIHeadTemplate):
         Returns:
 
         """
-        batch_size = BATCH_SIZE #batch_dict['batch_size'] # BATCH_SIZE
+        batch_size = batch_dict['batch_size'] # BATCH_SIZE
         rois = batch_dict['rois'].detach()
         spatial_features_2d = batch_dict['spatial_features_2d'].detach()
         height, width = spatial_features_2d.size(2), spatial_features_2d.size(3)
@@ -120,7 +120,7 @@ class SECONDHead(RoIHeadTemplate):
         rcnn_iou = self.iou_layers(shared_features).transpose(1, 2).contiguous().squeeze(dim=1)  # (B*N, 1)
 
         if not self.training:
-            batch_dict['batch_cls_preds'] = rcnn_iou.view(BATCH_SIZE, -1, rcnn_iou.shape[-1]) #rcnn_iou.view(batch_dict['batch_size'], -1, rcnn_iou.shape[-1]) # 
+            batch_dict['batch_cls_preds'] = rcnn_iou.view(batch_dict['batch_size'], -1, rcnn_iou.shape[-1]) # 
             batch_dict['batch_box_preds'] = batch_dict['rois']
             batch_dict['cls_preds_normalized'] = False
         else:

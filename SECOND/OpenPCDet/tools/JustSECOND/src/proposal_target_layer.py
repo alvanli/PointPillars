@@ -66,7 +66,7 @@ class ProposalTargetLayer(nn.Module):
         Returns:
 
         """
-        batch_size = BATCH_SIZE # batch_dict['batch_size'] #
+        batch_size = batch_dict['batch_size'] #
         rois = batch_dict['rois']
         roi_scores = batch_dict['roi_scores']
         roi_labels = batch_dict['roi_labels']

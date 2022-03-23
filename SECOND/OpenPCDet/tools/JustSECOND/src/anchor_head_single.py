@@ -61,7 +61,7 @@ class AnchorHeadSingle(AnchorHeadTemplate):
 
         if not self.training or self.predict_boxes_when_training:
             batch_cls_preds, batch_box_preds = self.generate_predicted_boxes(
-                batch_size=BATCH_SIZE, #data_dict['batch_size'], #
+                batch_size=data_dict['batch_size'], #
                 cls_preds=cls_preds, box_preds=box_preds, dir_cls_preds=dir_cls_preds
             )
             data_dict['batch_cls_preds'] = batch_cls_preds

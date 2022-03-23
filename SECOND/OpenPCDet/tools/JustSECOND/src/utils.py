@@ -5,9 +5,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from src import iou3d_nms_cuda
+from JustSECOND import iou3d_nms_cuda
 
-BATCH_SIZE = 1
+BATCH_SIZE = 8
 
 def create_logger(log_file=None, rank=0, log_level=logging.INFO):
     logger = logging.getLogger(__name__)

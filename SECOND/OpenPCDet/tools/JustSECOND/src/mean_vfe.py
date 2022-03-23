@@ -4,9 +4,8 @@ import torch.nn as nn
 
 
 class MeanVFE(nn.Module):
-    def __init__(self, model_cfg, num_point_features):
+    def __init__(self, num_point_features):
         super().__init__()
-        self.model_cfg = model_cfg
         self.num_point_features = num_point_features
 
     def get_output_feature_dim(self):

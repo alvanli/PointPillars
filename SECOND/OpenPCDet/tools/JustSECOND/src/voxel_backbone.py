@@ -30,9 +30,9 @@ def post_act_block(in_channels, out_channels, kernel_size, indice_key=None, stri
     return m
 
 class VoxelBackBone8x(nn.Module):
-    def __init__(self, model_cfg, input_channels, grid_size):
+    def __init__(self, input_channels, grid_size):
         super().__init__()
-        self.model_cfg = model_cfg
+        # self.model_cfg = model_cfg
         norm_fn = partial(nn.BatchNorm1d, eps=1e-3, momentum=0.01)
 
         self.sparse_shape = grid_size[::-1] + [1, 0, 0]
@@ -70,7 +70,7 @@ class VoxelBackBone8x(nn.Module):
         )
 
         last_pad = 0
-        last_pad = self.model_cfg.get('last_pad', last_pad)
+        # last_pad = self.model_cfg.get('last_pad', last_pad)
         self.conv_out = spconv.SparseSequential(
             # [200, 150, 5] -> [200, 150, 2]
             spconv.SparseConv3d(64, 128, (3, 1, 1), stride=(2, 1, 1), padding=last_pad,
@@ -100,7 +100,7 @@ class VoxelBackBone8x(nn.Module):
                 encoded_spconv_tensor: sparse tensor
         """
         voxel_features, voxel_coords = batch_dict['voxel_features'], batch_dict['voxel_coords']
-        batch_size = BATCH_SIZE # batch_dict['batch_size'] # BATCH_SIZE
+        batch_size = batch_dict['batch_size'] # BATCH_SIZE
         input_sp_tensor = spconv.SparseConvTensor(
             features=voxel_features,
             indices=voxel_coords.int(),
